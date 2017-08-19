@@ -1,0 +1,5 @@
+name: "hdecomp"
+version: "1.0.0"
+dependencies: 
+    "craftr.lang.java" : "*"
+options: {}
