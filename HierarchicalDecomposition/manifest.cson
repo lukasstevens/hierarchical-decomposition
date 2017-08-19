@@ -1,4 +1,4 @@
-name: "HierarchicalDecomposition"
+name: "hdecomp"
 version: "1.0.0"
 project_dir: "."
 dependencies: 
