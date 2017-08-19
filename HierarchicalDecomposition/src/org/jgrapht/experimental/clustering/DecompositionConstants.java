@@ -4,7 +4,6 @@ import org.jgrapht.experimental.clustering.krv.KRVPotential;
 import org.jgrapht.experimental.clustering.krv.MatchingStep;
 import org.jgrapht.experimental.clustering.krv.ModifiedEfficientKRVProcedure;
 import org.jgrapht.experimental.clustering.krv.PracticalVertexDivider;
-import org.jgrapht.experimental.clustering.old.TheoreticalVertexDivider;
 
 /**
  * Parameters for the decomposition algorithm.

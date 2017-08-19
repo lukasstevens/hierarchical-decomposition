@@ -12,7 +12,6 @@ import org.jgrapht.experimental.clustering.FlowPath;
 import org.jgrapht.experimental.clustering.FlowProblem;
 import org.jgrapht.experimental.clustering.SplitGraph;
 import org.jgrapht.experimental.clustering.SplitVertex;
-import org.jgrapht.experimental.clustering.old.ModifiedKRVProcedure;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import cern.colt.matrix.tdouble.DoubleMatrix1D;

@@ -1,0 +1,19 @@
+# hdecomp
+import os
+
+java = load('craftr.lang.java')
+
+hdecomp = java.jar(
+        inputs = java.compile(
+            src_dir = local('src'), 
+            srcs = [
+                local(fn) for fn in [lfn for lfn in glob(os.path.join('src', '**/*.java'))
+                    if 'test/' not in lfn and 'mf/' not in lfn and 'name/' not in lfn]], 
+                additional_flags = 
+                ['-encoding', 'utf8'] + 
+                ['-cp', path.pathsep.join([local(os.path.join('jar', fn)) for fn in
+                    ['jgrapht-jdk1.6.jar', 'parallelcolt-0.9.4.jar', 'guava-14.0.1.jar']] +
+                    [buildlocal('java')])]
+                ),
+        output = 'hdecomp',
+        )
