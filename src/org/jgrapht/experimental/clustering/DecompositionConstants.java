@@ -25,7 +25,7 @@ public class DecompositionConstants {
 	/**
 	 * Turns 'light debugging mode' on/off. In contrast to DEBUG is does not affect the runtime too much.
 	 */
-	public static final Boolean LIGHT_DEBUG = true;
+	public static final Boolean LIGHT_DEBUG = false;
 	
 	/**
 	 * Mainly for debugging: error that we are allowed to make (due to Double precision)
@@ -76,7 +76,7 @@ public class DecompositionConstants {
 	/**
 	 * Statistics are gathered if this constant is set to true
 	 */
-	public static final Boolean STATS = true;
+	public static final Boolean STATS = false;
 	
 	/**
 	 * Number of iterations the 'No Progress' heuristic looks at

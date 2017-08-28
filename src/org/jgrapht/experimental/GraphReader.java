@@ -148,18 +148,26 @@ public class GraphReader<V, E>
         VertexFactory<V> vertexFactory,
         Map<String, V> resultMap)
     {
-        final int size = readNodeCount();
+        String[] cols = skipComments();
+        int nodeCount = -1;
+        int edgeCount = -1;
+        if (cols[0].equals("p")) {
+            nodeCount = Integer.parseInt(cols[1]);
+            edgeCount = Integer.parseInt(cols[2]);
+        }
+
         if (resultMap == null) {
             resultMap = new HashMap<String, V>();
         }
 
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < nodeCount; i++) {
             V newVertex = vertexFactory.createVertex();
             target.addVertex(newVertex);
             resultMap.put(Integer.toString(i + 1), newVertex);
         }
-        String [] cols = skipComments();
-        while (cols != null) {
+
+        cols = skipComments();
+        for (int edgeIndex = 0; edgeIndex < edgeCount;) {
             if (cols[0].equals("e")) {
                 E edge =
                     target.addEdge(
@@ -172,6 +180,7 @@ public class GraphReader<V, E>
                     }
                     ((WeightedGraph<V, E>) target).setEdgeWeight(edge, weight);
                 }
+                ++edgeIndex;
             }
             cols = skipComments();
         }

@@ -14,5 +14,6 @@ hdecomp = java.jar(
                 ['-cp', path.pathsep.join([local(os.path.join('jar', fn)) for fn in
                     ['jgrapht-jdk1.6.jar', 'parallelcolt-0.9.4.jar', 'guava-14.0.1.jar']])]
                 ),
+        entry_point = 'org.jgrapht.experimental.GraphDecomposer',
         output = 'hdecomp',
         )
