@@ -24,19 +24,24 @@ import java.util.Queue;
 public class GraphDecomposer {
 
     public static void main(String[] args) throws IOException {
-        if (args.length == 2) {
-            int inputCount = Integer.parseInt(args[1]);
+        BufferedReader reader =
+            new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter writer =
+            new BufferedWriter(new OutputStreamWriter(System.out));
+        if (args.length == 1) {
+            int inputCount = Integer.parseInt(args[0]);
             for (int inputIdx = 0; inputIdx < inputCount; ++inputIdx) {
-                readGraphOutputTree();
+                readGraphOutputTree(reader, writer);
             }
         } else {
-            readGraphOutputTree();
+            readGraphOutputTree(reader, writer);
         }
     }
 
-    private static void readGraphOutputTree() throws IOException {
+    private static void readGraphOutputTree(BufferedReader reader, BufferedWriter writer)
+        throws IOException {
         GraphReader<Integer, DefaultWeightedEdge> graphReader =
-            new GraphReader<>(new BufferedReader(new InputStreamReader(System.in)));
+            new GraphReader<>(reader);
         Graph<Integer, DefaultWeightedEdge> graph =
             new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
 
@@ -60,22 +65,22 @@ public class GraphDecomposer {
 
 
         outputTree(graphNodeCount, graphReader.getNodeWeights(),
-            decompositionTree, decompositionTreeGraph);
+            decompositionTree, decompositionTreeGraph, writer);
     }
 
     private static void outputTree(
         int graphNodeCount,
         int[] graphNodeWeights,
         DecompositionTree<Integer> decompositionTree,
-        DirectedGraph<TreeVertex<Integer>, DefaultWeightedEdge> decompositionTreeGraph
+        DirectedGraph<TreeVertex<Integer>, DefaultWeightedEdge> decompositionTreeGraph,
+        BufferedWriter writer
     ) throws IOException {
 
-        BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(System.out));
-        outputWriter.write(decompositionTreeGraph.vertexSet().size() + " " +
+        writer.write(decompositionTreeGraph.vertexSet().size() + " " +
             decompositionTreeGraph.edgeSet().size() + " 011\n");
 
         for (Integer node = 0; node < graphNodeCount; ++node) {
-            outputWriter.write(graphNodeWeights[node] + "\n");
+            writer.write(graphNodeWeights[node] + "\n");
         }
 
         Map<TreeVertex<Integer>, Integer> vertexLabels = new HashMap<>();
@@ -94,27 +99,27 @@ public class GraphDecomposer {
         while (!vertexQueue.isEmpty()) {
             TreeVertex<Integer> currTreeVertex = vertexQueue.remove();
             // All inner nodes have weight 0
-            outputWriter.write("" + 0);
+            writer.write("" + 0);
 
             for (DefaultWeightedEdge e :
                 decompositionTreeGraph.outgoingEdgesOf(currTreeVertex)) {
                 TreeVertex<Integer> nextVertex = decompositionTreeGraph.getEdgeTarget(e);
-                outputWriter.write(" " + vertexLabels.get(nextVertex).toString());
+                writer.write(" " + vertexLabels.get(nextVertex).toString());
                 if (nextVertex.getType() == TreeVertexType.TREE_VERTEX) {
                     vertexQueue.add(nextVertex);
                 }
 
                 if (decompositionTreeGraph.getEdgeWeight(e) == Double.POSITIVE_INFINITY) {
-                    outputWriter.write(" " + Integer.MAX_VALUE);
+                    writer.write(" " + Integer.MAX_VALUE);
                 } else {
-                    outputWriter.write(" " +
+                    writer.write(" " +
                         (int)Math.round(decompositionTreeGraph.getEdgeWeight(e)));
                 }
             }
-            outputWriter.write("\n");
+            writer.write("\n");
         }
-        outputWriter.write("\n");
-        outputWriter.flush();
+        writer.write("\n");
+        writer.flush();
     }
 
 }
