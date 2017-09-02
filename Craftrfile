@@ -1,19 +1,26 @@
 # hdecomp
 import os
+from sys import platform
 
 java = load('craftr.lang.java')
 
-hdecomp = java.jar(
-        inputs = java.compile(
-            src_dir = local('src'), 
-            srcs = [
-                local(fn) for fn in [lfn for lfn in glob(os.path.join('src', '**/*.java'))
-                    if 'test/' not in lfn]], 
-                additional_flags = 
-                ['-encoding', 'utf8'] + 
-                ['-cp', path.pathsep.join([local(os.path.join('jar', fn)) for fn in
-                    ['jgrapht-jdk1.6.jar', 'parallelcolt-0.9.4.jar', 'guava-14.0.1.jar']])]
-                ),
-        entry_point = 'org.jgrapht.experimental.GraphDecomposer',
-        output = 'hdecomp',
-        )
+def build_for_platform():
+    if platform == "win32":
+        return gentarget(
+                [['./gradlew.bat', 'jar']],
+                cwd = project_dir,
+                outputs = [local('build/libs/hierarchical-decomposition.jar')],
+                inputs = glob('src/**/*.java'),
+                name='hdecomp'
+                )
+    else:
+        return gentarget(
+                [['./gradlew', 'jar']],
+                cwd = project_dir,
+                outputs = [local('build/libs/hierarchical-decomposition.jar')],
+                inputs = glob('src/**/*.java'),
+                name='hdecomp'
+                )
+
+
+hdecomp = build_for_platform()

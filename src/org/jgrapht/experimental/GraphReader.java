@@ -50,94 +50,12 @@ import org.jgrapht.generate.*;
 public class GraphReader<V, E>
     implements GraphGenerator<V, E, V>
 {
-    //~ Instance fields --------------------------------------------------------
+    private BufferedReader in;
 
-    // ~ Static fields/initializers --------------------------------------------
+    private int[] nodeWeights;
 
-    // ~ Instance fields -------------------------------------------------------
-
-    // ~ Static fields/initializers --------------------------------------------
-
-    // ~ Instance fields -------------------------------------------------------
-
-    private final BufferedReader _in;
-    private final boolean _isWeighted;
-    private final double _defaultWeight;
-
-    // ~ Constructors ----------------------------------------------------------
-
-    //~ Constructors -----------------------------------------------------------
-
-    /**
-     * Construct a new GraphReader.
-     */
-    private GraphReader(Reader input, boolean isWeighted, double defaultWeight)
-        throws IOException
-    {
-        if (input instanceof BufferedReader) {
-            _in = (BufferedReader) input;
-        } else {
-            _in = new BufferedReader(input);
-        }
-        _isWeighted = isWeighted;
-        _defaultWeight = defaultWeight;
-    }
-
-    /**
-     * Construct a new GraphReader.
-     */
-    public GraphReader(Reader input)
-        throws IOException
-    {
-        this(input, false, 1);
-    }
-
-    /**
-     * Construct a new GraphReader.
-     */
-    public GraphReader(Reader input, double defaultWeight)
-        throws IOException
-    {
-        this(input, true, defaultWeight);
-    }
-
-    //~ Methods ----------------------------------------------------------------
-
-    // ~ Methods ---------------------------------------------------------------
-
-    private String [] split(final String src)
-    {
-        if (src == null) {
-            return null;
-        }
-        return src.split("\\s+");
-    }
-
-    private String [] skipComments()
-    {
-        String [] cols = null;
-        try {
-            cols = split(_in.readLine());
-            while (
-                (cols != null)
-                && ((cols.length == 0)
-                    || cols[0].equals("c")
-                    || cols[0].startsWith("%")))
-            {
-                cols = split(_in.readLine());
-            }
-        } catch (IOException e) {
-        }
-        return cols;
-    }
-
-    private int readNodeCount()
-    {
-        final String [] cols = skipComments();
-        if (cols[0].equals("p")) {
-            return Integer.parseInt(cols[1]);
-        }
-        return -1;
+    GraphReader(BufferedReader in) {
+        this.in = in;
     }
 
     /**
@@ -148,43 +66,74 @@ public class GraphReader<V, E>
         VertexFactory<V> vertexFactory,
         Map<String, V> resultMap)
     {
-        String[] cols = skipComments();
-        int nodeCount = -1;
-        int edgeCount = -1;
-        if (cols[0].equals("p")) {
-            nodeCount = Integer.parseInt(cols[1]);
-            edgeCount = Integer.parseInt(cols[2]);
-        }
-
         if (resultMap == null) {
-            resultMap = new HashMap<String, V>();
+            resultMap = new HashMap<>();
         }
 
-        for (int i = 0; i < nodeCount; i++) {
-            V newVertex = vertexFactory.createVertex();
-            target.addVertex(newVertex);
-            resultMap.put(Integer.toString(i + 1), newVertex);
-        }
-
-        cols = skipComments();
-        for (int edgeIndex = 0; edgeIndex < edgeCount;) {
-            if (cols[0].equals("e")) {
-                E edge =
-                    target.addEdge(
-                        resultMap.get(cols[1]),
-                        resultMap.get(cols[2]));
-                if (_isWeighted && (edge != null)) {
-                    double weight = _defaultWeight;
-                    if (cols.length > 3) {
-                        weight = Double.parseDouble(cols[3]);
-                    }
-                    ((WeightedGraph<V, E>) target).setEdgeWeight(edge, weight);
-                }
-                ++edgeIndex;
+        try {
+            String line = in.readLine();
+            while (line.isEmpty()) {
+                line = in.readLine();
             }
-            cols = skipComments();
+            String[] lineSplit = line.split(" ");
+            int nodeCount = Integer.parseInt(lineSplit[0]);
+            int edgeCount = Integer.parseInt(lineSplit[1]);
+            boolean[] fmt = new boolean[3];
+            if (lineSplit.length >= 3) {
+                String fmtString = lineSplit[2];
+                for (int i = fmtString.length() - 1; i >= 0; --i) {
+                    if (fmtString.charAt(i) == '1') {
+                        fmt[i] = true;
+                    }
+                }
+            }
+
+            boolean hasNodeWeights = fmt[1];
+            boolean hasEdgeWeights = fmt[2];
+            nodeWeights = new int[nodeCount];
+            Arrays.fill(nodeWeights, 1);
+
+            for (int node = 0; node < nodeCount; ++node) {
+                V vertex = vertexFactory.createVertex();
+                target.addVertex(vertex);
+                resultMap.put("" + node, vertex);
+            }
+
+            for (int node = 0; node < nodeCount; ++node) {
+                lineSplit = in.readLine().split(" ");
+                int edgeIdx = 0;
+                if (hasNodeWeights) {
+                    nodeWeights[node] = Integer.parseInt(lineSplit[0]);
+                    edgeIdx += 1;
+                }
+
+                for (; edgeIdx < lineSplit.length; ++edgeIdx) {
+                    int toNode = Integer.parseInt(lineSplit[edgeIdx]);
+                    double weight = 1.0;
+                    V fromVertex = resultMap.get("" + node);
+                    V toVertex = resultMap.get("" + toNode);
+
+                    if (hasEdgeWeights) {
+                        edgeIdx += 1;
+                        weight = Integer.parseInt(lineSplit[edgeIdx]);
+                    }
+
+                    if (!target.containsEdge(fromVertex, toVertex)) {
+                        E edge = target.addEdge(fromVertex, toVertex);
+                        ((WeightedGraph<V, E>) target).setEdgeWeight(edge, weight);
+                    }
+                }
+            }
+        } catch(IOException ex) {
+            System.err.println(ex);
         }
     }
+
+
+    public int[] getNodeWeights() {
+        return nodeWeights;
+    }
+
 }
 
 // End GraphReader.java
