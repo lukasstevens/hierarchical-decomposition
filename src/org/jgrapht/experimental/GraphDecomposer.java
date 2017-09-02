@@ -103,7 +103,13 @@ public class GraphDecomposer {
                 if (nextVertex.getType() == TreeVertexType.TREE_VERTEX) {
                     vertexQueue.add(nextVertex);
                 }
-                outputWriter.write(" " + decompositionTreeGraph.getEdgeWeight(e));
+
+                if (decompositionTreeGraph.getEdgeWeight(e) == Double.POSITIVE_INFINITY) {
+                    outputWriter.write(" " + Integer.MAX_VALUE);
+                } else {
+                    outputWriter.write(" " +
+                        (int)Math.round(decompositionTreeGraph.getEdgeWeight(e)));
+                }
             }
             outputWriter.write("\n");
         }
