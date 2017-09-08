@@ -18,8 +18,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 public class GraphDecomposer {
 
@@ -65,49 +65,56 @@ public class GraphDecomposer {
 
 
         outputTree(graphNodeCount, graphReader.getNodeWeights(),
-            decompositionTree, decompositionTreeGraph, writer);
+            decompositionTreeGraph, writer);
     }
 
     private static void outputTree(
         int graphNodeCount,
         int[] graphNodeWeights,
-        DecompositionTree<Integer> decompositionTree,
         DirectedGraph<TreeVertex<Integer>, DefaultWeightedEdge> decompositionTreeGraph,
         BufferedWriter writer
     ) throws IOException {
 
-        writer.write(decompositionTreeGraph.vertexSet().size() + " " +
-            decompositionTreeGraph.edgeSet().size() + " 011\n");
-
-        for (Integer node = 0; node < graphNodeCount; ++node) {
-            writer.write(graphNodeWeights[node] + "\n");
-        }
-
-        Map<TreeVertex<Integer>, Integer> vertexLabels = new HashMap<>();
+        Map<Integer, TreeVertex<Integer>> labelToVertex = new HashMap<>();
+        Map<TreeVertex<Integer>, Integer> vertexToLabel = new HashMap<>();
         Integer innerVertexLabel = graphNodeCount;
+        List<TreeVertex<Integer>> verticesToRemove = new LinkedList<>();
         for (TreeVertex<Integer> node : decompositionTreeGraph.vertexSet()) {
             if (node.getType() == TreeVertexType.LEAF) {
-                vertexLabels.put(node, node.getVertex());
+                if (labelToVertex.containsKey(node.getVertex())) {
+                    verticesToRemove.add(node);
+                } else {
+                    labelToVertex.put(node.getVertex(), node);
+                    vertexToLabel.put(node, node.getVertex());
+                }
             } else {
-                vertexLabels.put(node, innerVertexLabel);
+                labelToVertex.put(innerVertexLabel, node);
+                vertexToLabel.put(node, innerVertexLabel);
                 innerVertexLabel += 1;
             }
         }
 
-        Queue<TreeVertex<Integer>> vertexQueue = new LinkedList<>();
-        vertexQueue.add(decompositionTree.getRoot());
-        while (!vertexQueue.isEmpty()) {
-            TreeVertex<Integer> currTreeVertex = vertexQueue.remove();
-            // All inner nodes have weight 0
-            writer.write("" + 0);
+        for (TreeVertex<Integer> vertex : verticesToRemove) {
+            decompositionTreeGraph.removeVertex(vertex);
+        }
+
+        writer.write(decompositionTreeGraph.vertexSet().size() + " " +
+            decompositionTreeGraph.edgeSet().size() + " 011\n");
+
+
+        for (Integer node = 0; node < innerVertexLabel; ++node){
+            TreeVertex<Integer> currTreeVertex = labelToVertex.get(node);
+            if (currTreeVertex.getType() == TreeVertexType.LEAF) {
+                writer.write("" + graphNodeWeights[node]);
+            } else {
+                // All inner nodes have weight 0
+                writer.write("" + 0);
+            }
 
             for (DefaultWeightedEdge e :
                 decompositionTreeGraph.outgoingEdgesOf(currTreeVertex)) {
                 TreeVertex<Integer> nextVertex = decompositionTreeGraph.getEdgeTarget(e);
-                writer.write(" " + vertexLabels.get(nextVertex).toString());
-                if (nextVertex.getType() == TreeVertexType.TREE_VERTEX) {
-                    vertexQueue.add(nextVertex);
-                }
+                writer.write(" " + vertexToLabel.get(nextVertex));
 
                 if (decompositionTreeGraph.getEdgeWeight(e) == Double.POSITIVE_INFINITY) {
                     writer.write(" " + Integer.MAX_VALUE);
